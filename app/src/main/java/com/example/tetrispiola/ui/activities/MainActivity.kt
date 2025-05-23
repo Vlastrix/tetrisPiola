@@ -1,5 +1,6 @@
 package com.example.tetrispiola.ui.activities
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -33,6 +34,13 @@ class MainActivity : AppCompatActivity() {
             binding.tvScore.text = "Score: ${viewModel.score}"
             binding.tvLevel.text = "Level: ${viewModel.level}"
             binding.tetrisView.restartAutoFall()
+        }
+        viewModel.gameOverListener = {
+            val intent = Intent(this, ScoreActivity::class.java).apply {
+                putExtra("finalScore", viewModel.score)
+            }
+            startActivity(intent)
+            finish()
         }
     }
 }

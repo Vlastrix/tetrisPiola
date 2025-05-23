@@ -12,36 +12,61 @@ class TetrisViewModel : ViewModel() {
         private set
     var speed = 1000L
         private set
+    var isGameOver = false
+        private set
 
     var linesClearedListener: ((Int) -> Unit)? = null
+    var gameOverListener: (() -> Unit)? = null
 
     val shapes = listOf(
-        arrayOf( // I
-            arrayOf(1, 1, 1, 1)
+        // Pieza I
+        arrayOf(
+            arrayOf(0, 0, 0, 0),
+            arrayOf(1, 1, 1, 1),
+            arrayOf(0, 0, 0, 0),
+            arrayOf(0, 0, 0, 0)
         ),
-        arrayOf( // O
-            arrayOf(1, 1),
-            arrayOf(1, 1)
+        // Pieza O
+        arrayOf(
+            arrayOf(0, 1, 1, 0),
+            arrayOf(0, 1, 1, 0),
+            arrayOf(0, 0, 0, 0),
+            arrayOf(0, 0, 0, 0)
         ),
-        arrayOf( // T
-            arrayOf(0, 1, 0),
-            arrayOf(1, 1, 1)
+        // Pieza T
+        arrayOf(
+            arrayOf(0, 1, 0, 0),
+            arrayOf(1, 1, 1, 0),
+            arrayOf(0, 0, 0, 0),
+            arrayOf(0, 0, 0, 0)
         ),
-        arrayOf( // S
-            arrayOf(0, 1, 1),
-            arrayOf(1, 1, 0)
+        // Pieza S
+        arrayOf(
+            arrayOf(0, 1, 1, 0),
+            arrayOf(1, 1, 0, 0),
+            arrayOf(0, 0, 0, 0),
+            arrayOf(0, 0, 0, 0)
         ),
-        arrayOf( // Z
-            arrayOf(1, 1, 0),
-            arrayOf(0, 1, 1)
+        // Pieza Z
+        arrayOf(
+            arrayOf(1, 1, 0, 0),
+            arrayOf(0, 1, 1, 0),
+            arrayOf(0, 0, 0, 0),
+            arrayOf(0, 0, 0, 0)
         ),
-        arrayOf( // J
-            arrayOf(1, 0, 0),
-            arrayOf(1, 1, 1)
+        // Pieza J
+        arrayOf(
+            arrayOf(1, 0, 0, 0),
+            arrayOf(1, 1, 1, 0),
+            arrayOf(0, 0, 0, 0),
+            arrayOf(0, 0, 0, 0)
         ),
-        arrayOf( // L
-            arrayOf(0, 0, 1),
-            arrayOf(1, 1, 1)
+        // Pieza L
+        arrayOf(
+            arrayOf(0, 0, 1, 0),
+            arrayOf(1, 1, 1, 0),
+            arrayOf(0, 0, 0, 0),
+            arrayOf(0, 0, 0, 0)
         )
     )
 
@@ -75,13 +100,24 @@ class TetrisViewModel : ViewModel() {
 
     private fun generateRandomPiece(): Tetromino {
         val index = Random.nextInt(shapes.size)
-        return Tetromino(
+        val newPiece = Tetromino(
             shape = shapes[index],
-            color = colors[index]
+            color = colors[index],
+            x = 3,
+            y = 0
         )
+
+        if (!isValidMove(newPiece.shape, newPiece.x, newPiece.y)) {
+            isGameOver = true
+            gameOverListener?.invoke()
+        }
+
+        return newPiece
     }
 
     fun moveDown(): Boolean {
+        if (isGameOver) return false
+
         if (isValidMove(currentPiece.shape, currentPiece.x, currentPiece.y + 1)) {
             currentPiece.y += 1
             return true
@@ -128,19 +164,23 @@ class TetrisViewModel : ViewModel() {
 
     fun rotatePiece() {
         val rotatedShape = rotateMatrix(currentPiece.shape)
-        if (isValidMove(rotatedShape, currentPiece.x, currentPiece.y)) {
-            currentPiece.shape = rotatedShape
+        val possibleOffsets = listOf(0, -1, 1, -2, 2)
+
+        for (offset in possibleOffsets) {
+            if (isValidMove(rotatedShape, currentPiece.x + offset, currentPiece.y)) {
+                currentPiece.shape = rotatedShape
+                currentPiece.x += offset
+                break
+            }
         }
     }
-
     private fun rotateMatrix(matrix: Array<Array<Int>>): Array<Array<Int>> {
-        val rows = matrix.size
-        val cols = matrix[0].size
-        val rotated = Array(cols) { Array(rows) { 0 } }
+        val size = matrix.size
+        val rotated = Array(size) { Array(size) { 0 } }
 
-        for (i in 0 until rows) {
-            for (j in 0 until cols) {
-                rotated[j][rows - 1 - i] = matrix[i][j]
+        for (i in 0 until size) {
+            for (j in 0 until size) {
+                rotated[j][size - 1 - i] = matrix[i][j]
             }
         }
         return rotated

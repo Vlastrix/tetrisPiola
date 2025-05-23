@@ -13,6 +13,9 @@
         android:theme="@style/Theme.TetrisPiola"
         tools:targetApi="31">
         <activity
+            android:name=".ui.activities.ScoreActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.activities.MainActivity"
             android:exported="true">
             <intent-filter>

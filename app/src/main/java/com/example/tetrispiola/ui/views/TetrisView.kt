@@ -30,11 +30,11 @@ class TetrisView(context: Context, attrs: AttributeSet?) : View(context, attrs) 
 
     private val autoFallRunnable = object : Runnable {
         override fun run() {
-            if (::viewModel.isInitialized) {
+            if (::viewModel.isInitialized && !viewModel.isGameOver) { // verificar Game Over claramente
                 viewModel.moveDown()
                 invalidate()
+                handler.postDelayed(this, viewModel.speed)
             }
-            handler.postDelayed(this, viewModel.speed)
         }
     }
 
@@ -69,7 +69,6 @@ class TetrisView(context: Context, attrs: AttributeSet?) : View(context, attrs) 
                 }
             }
 
-            // Dibujar pieza actual
             viewModel.currentPiece.shape.forEachIndexed { rowIndex, row ->
                 row.forEachIndexed { colIndex, cell ->
                     if (cell == 1) {
@@ -105,7 +104,7 @@ class TetrisView(context: Context, attrs: AttributeSet?) : View(context, attrs) 
             val heightQuarter = height / 4
 
             if (event.y < heightQuarter) {
-                viewModel.rotatePiece()  // Rotar al tocar arriba
+                viewModel.rotatePiece()
             } else {
                 when {
                     event.x < widthThird -> viewModel.moveLeft()
