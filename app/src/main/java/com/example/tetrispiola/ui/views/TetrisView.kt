@@ -35,7 +35,7 @@ class TetrisView(context: Context, attrs: AttributeSet?) : View(context, attrs) 
 
     private val autoFallRunnable = object : Runnable {
         override fun run() {
-            if (::viewModel.isInitialized && !viewModel.isGameOver) { // verificar Game Over claramente
+            if (::viewModel.isInitialized && !viewModel.isGameOver) {
                 viewModel.moveDown()
                 invalidate()
                 handler.postDelayed(this, viewModel.speed)

@@ -222,7 +222,7 @@ class TetrisViewModel : ViewModel() {
     }
 
     private fun checkLevelUp() {
-        val newLevel = (score / 50) + 1
+        val newLevel = (score / 60) + 1
         if (newLevel > level) {
             level = newLevel
             speed = (speed * 0.7).toLong().coerceAtLeast(100)
