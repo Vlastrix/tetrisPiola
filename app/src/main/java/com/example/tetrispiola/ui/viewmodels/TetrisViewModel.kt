@@ -225,7 +225,7 @@ class TetrisViewModel : ViewModel() {
         val newLevel = (score / 60) + 1
         if (newLevel > level) {
             level = newLevel
-            speed = (speed * 0.7).toLong().coerceAtLeast(100)
+            speed = (speed * 0.9).toLong().coerceAtLeast(100)
             resetBoard()
         }
     }
