@@ -1,5 +1,6 @@
 package com.example.tetrispiola.ui.views
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
@@ -9,11 +10,15 @@ import android.os.Looper
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
+import androidx.core.animation.doOnEnd
 import com.example.tetrispiola.ui.viewmodels.TetrisViewModel
 
 class TetrisView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 
     private lateinit var viewModel: TetrisViewModel
+
+    private var linesToAnimate: List<Int> = emptyList()
+    private var isAnimating = false
 
     private val paint = Paint().apply {
         style = Paint.Style.STROKE
@@ -43,6 +48,26 @@ class TetrisView(context: Context, attrs: AttributeSet?) : View(context, attrs) 
         cellSize = (width / cols).coerceAtMost(height / rows).toFloat()
     }
 
+    fun animateLines(lines: List<Int>) {
+        linesToAnimate = lines
+        isAnimating = true
+        val animator = ValueAnimator.ofInt(0, 4).apply {
+            duration = 300
+            repeatCount = 3
+            repeatMode = ValueAnimator.REVERSE
+            addUpdateListener {
+                invalidate()
+            }
+            doOnEnd {
+                isAnimating = false
+                linesToAnimate = emptyList()
+                viewModel.removeLines(lines)
+                invalidate()
+            }
+        }
+        animator.start()
+    }
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
@@ -62,6 +87,13 @@ class TetrisView(context: Context, attrs: AttributeSet?) : View(context, attrs) 
                 for (j in 0 until cols) {
                     if (viewModel.board[i][j] != 0) {
                         paint.color = viewModel.board[i][j]
+
+                        if (isAnimating && i in linesToAnimate) {
+                            paint.alpha = if ((System.currentTimeMillis() / 100) % 2 == 0L) 50 else 255
+                        } else {
+                            paint.alpha = 255
+                        }
+
                         val left = j * cellSize
                         val top = i * cellSize
                         canvas.drawRect(left, top, left + cellSize, top + cellSize, paint)
@@ -73,6 +105,7 @@ class TetrisView(context: Context, attrs: AttributeSet?) : View(context, attrs) 
                 row.forEachIndexed { colIndex, cell ->
                     if (cell == 1) {
                         paint.color = viewModel.currentPiece.color
+                        paint.alpha = 255
                         val x = (viewModel.currentPiece.x + colIndex) * cellSize
                         val y = (viewModel.currentPiece.y + rowIndex) * cellSize
                         canvas.drawRect(x, y, x + cellSize, y + cellSize, paint)
@@ -81,6 +114,7 @@ class TetrisView(context: Context, attrs: AttributeSet?) : View(context, attrs) 
             }
         }
     }
+
 
 
     override fun onAttachedToWindow() {

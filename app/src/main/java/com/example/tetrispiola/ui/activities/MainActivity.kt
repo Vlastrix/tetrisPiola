@@ -30,6 +30,10 @@ class MainActivity : AppCompatActivity() {
 
         binding.tetrisView.setViewModel(viewModel)
 
+        viewModel.animateLinesListener = { lines ->
+            binding.tetrisView.animateLines(lines)
+        }
+
         viewModel.linesClearedListener = {
             binding.tvScore.text = "Score: ${viewModel.score}"
             binding.tvLevel.text = "Level: ${viewModel.level}"

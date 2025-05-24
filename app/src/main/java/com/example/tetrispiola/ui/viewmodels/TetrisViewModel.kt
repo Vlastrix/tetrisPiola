@@ -6,6 +6,7 @@ import kotlin.random.Random
 
 class TetrisViewModel : ViewModel() {
     val board = Array(20) { Array(10) { 0 } }
+    var animateLinesListener: ((List<Int>) -> Unit)? = null
     var score = 0
         private set
     var level = 1
@@ -123,10 +124,13 @@ class TetrisViewModel : ViewModel() {
             return true
         } else {
             placePiece()
-            val linesCleared = clearCompletedLines()
-            calculateScore(linesCleared)
+            val completedLines = clearCompletedLines()
+            if (completedLines.isNotEmpty()) {
+                animateLinesListener?.invoke(completedLines)
+            }
+            calculateScore(completedLines.size)
             checkLevelUp()
-            linesClearedListener?.invoke(linesCleared)
+            linesClearedListener?.invoke(completedLines.size)
             currentPiece = generateRandomPiece()
             return false
         }
@@ -186,22 +190,23 @@ class TetrisViewModel : ViewModel() {
         return rotated
     }
 
-    fun clearCompletedLines(): Int {
-        var linesCleared = 0
+    fun clearCompletedLines(): List<Int> {
+        val completedLines = mutableListOf<Int>()
         for (row in board.indices.reversed()) {
             if (board[row].all { it != 0 }) {
-                removeLine(row)
-                linesCleared++
+                completedLines.add(row)
             }
         }
-        return linesCleared
+        return completedLines
     }
 
-    private fun removeLine(line: Int) {
-        for (row in line downTo 1) {
-            board[row] = board[row - 1].copyOf()
+    fun removeLines(lines: List<Int>) {
+        for (line in lines.sorted()) {
+            for (row in line downTo 1) {
+                board[row] = board[row - 1].copyOf()
+            }
+            board[0] = Array(10) { 0 }
         }
-        board[0] = Array(10) { 0 }
     }
 
 
@@ -220,7 +225,7 @@ class TetrisViewModel : ViewModel() {
         val newLevel = (score / 50) + 1
         if (newLevel > level) {
             level = newLevel
-            speed = (speed * 0.8).toLong().coerceAtLeast(100)
+            speed = (speed * 0.7).toLong().coerceAtLeast(100)
             resetBoard()
         }
     }
